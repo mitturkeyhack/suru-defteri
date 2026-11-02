@@ -35,9 +35,9 @@ jobs:
             return 1
           }
           # Hızlı model (canlı sayım) — zorunlu
-          get efficientdet_lite0 detector_fast.tflite "float32 float16 int8"
+          get efficientdet_lite0 detector_fast.tflite "float16 float32 int8"
           # Hassas model (videodan sayım) — varsa
-          get efficientdet_lite2 detector_accurate.tflite "float32 float16 int8" || echo "Hassas model bulunamadı, hızlı model kullanılacak"
+          get efficientdet_lite2 detector_accurate.tflite "float16 float32 int8" || echo "Hassas model bulunamadı, hızlı model kullanılacak"
           ls -la app/src/main/assets
 
       - name: Testleri çalıştır

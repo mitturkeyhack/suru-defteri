@@ -19,9 +19,9 @@ android {
         versionCode = buildNumber
         versionName = "0.1.$buildNumber"
 
-        // Sadece telefon işlemcileri: APK küçük kalsın.
+        // Sadece 64 bit telefon işlemcileri (2019 sonrası neredeyse tüm telefonlar): APK küçük kalsın.
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
