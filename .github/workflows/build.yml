@@ -1,0 +1,66 @@
+name: APK Derle
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Koyun tanıma modelleri (Google MediaPipe, COCO veri setiyle eğitilmiş; "sheep" sınıfını tanır).
+      - name: Yapay zekâ modellerini indir
+        run: |
+          mkdir -p app/src/main/assets
+          base=https://storage.googleapis.com/mediapipe-models/object_detector
+          get() {
+            for q in $3; do
+              if curl -fsSL -o "app/src/main/assets/$2" "$base/$1/$q/latest/$1.tflite"; then
+                echo "$1 ($q) indirildi"; return 0
+              fi
+            done
+            return 1
+          }
+          # Hızlı model (canlı sayım) — zorunlu
+          get efficientdet_lite0 detector_fast.tflite "float32 float16 int8"
+          # Hassas model (videodan sayım) — varsa
+          get efficientdet_lite2 detector_accurate.tflite "float32 float16 int8" || echo "Hassas model bulunamadı, hızlı model kullanılacak"
+          ls -la app/src/main/assets
+
+      - name: Testleri çalıştır
+        run: |
+          chmod +x gradlew
+          ./gradlew testReleaseUnitTest --stacktrace
+
+      - name: APK derle
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: APK'yı adlandır
+        run: cp app/build/outputs/apk/release/app-release.apk "SuruDefteri-v0.1.${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SuruDefteri-v0.1.${{ github.run_number }}
+          path: SuruDefteri-*.apk
+
+      - name: Sürüm (Releases) sayfasına yükle
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          name: Sürü Defteri v0.1.${{ github.run_number }}
+          body: Otomatik derlenen sürüm. APK dosyasını indirip telefona kur.
+          prerelease: true
+          files: SuruDefteri-*.apk

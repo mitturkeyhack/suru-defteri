@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Koyun gövdesi: yün bulutu -->
+    <path android:fillColor="#FFF6F1E6"
+        android:pathData="M38,56 a9,9 0 0 1 8,-12 a10,10 0 0 1 17,-2 a9,9 0 0 1 12,7 a8,8 0 0 1 -1,15 a9,9 0 0 1 -14,4 a10,10 0 0 1 -15,-1 a8,8 0 0 1 -7,-11 z" />
+    <!-- Baş -->
+    <path android:fillColor="#FF2B2B2B"
+        android:pathData="M30,50 a7,8 0 1 0 14,0 a7,8 0 1 0 -14,0 z" />
+    <!-- Bacaklar -->
+    <path android:fillColor="#FF2B2B2B" android:pathData="M48,66 h3 v9 h-3 z M58,67 h3 v8 h-3 z M67,66 h3 v9 h-3 z" />
+    <!-- Sayım işareti -->
+    <path android:fillColor="#FFF2B544"
+        android:pathData="M70,30 a9,9 0 1 0 18,0 a9,9 0 1 0 -18,0 z" />
+    <path android:strokeColor="#FF2F6B3E" android:strokeWidth="2.6" android:strokeLineCap="round"
+        android:strokeLineJoin="round" android:pathData="M75,30 l3,3 l6,-6" />
+</vector>
