@@ -50,7 +50,11 @@ object VideoCounter {
             var lastPercent = -1
             while (t <= durationMs) {
                 coroutineContext.ensureActive()
-                val frame = grab(retriever, t, durationMs, frameCount) ?: run { t += stepMs; continue }
+                val frame = grab(retriever, t, durationMs, frameCount)
+                if (frame == null) {
+                    t += stepMs
+                    continue
+                }
                 val small = scaleDown(frame, 960)
                 val boxes = detector.detect(small, t)
                 val tracks = counter.update(boxes)
