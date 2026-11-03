@@ -16,6 +16,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        CrashLog.install(this)
         db = SuruDb.build(this)
         prefs = Prefs(this)
         Updater.schedule(this)

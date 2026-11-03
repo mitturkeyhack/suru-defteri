@@ -42,8 +42,10 @@ android {
             signingConfig = signingConfigs.getByName("app")
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Küçültme kapalı: MediaPipe/ML Kit yerel kodu sınıflara isimle eriştiği için
+            // küçültme sonrası çökme riski taşıyor. Güvenilirlik boyuttan önemli.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("app")
         }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import com.google.mediapipe.framework.image.BitmapImageBuilder
+import com.surudefteri.app.CrashLog
 import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
@@ -67,8 +68,10 @@ class SheepDetector private constructor(private val detector: ObjectDetector) : 
                     .setCategoryAllowlist(if (includeSimilar) listOf("sheep", "cow") else listOf("sheep"))
                     .build()
                 SheepDetector(ObjectDetector.createFromOptions(context, options))
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                // Error'lar da (yerel kütüphane yüklenemedi, bellek yetmedi) yakalanır: uygulama çökmesin.
                 Log.e(TAG, "Tanıyıcı başlatılamadı", e)
+                CrashLog.record(context, "Tanıyıcı başlatılamadı", e)
                 null
             }
         }

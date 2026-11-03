@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import com.surudefteri.app.CrashLog
 import com.surudefteri.app.data.Direction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -44,18 +45,17 @@ object VideoCounter {
             if (durationMs <= 0) return@withContext null
             val counter = LineCounter(direction.horizontal, direction.forward, linePosition)
 
-            val frameCount = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)?.toIntOrNull()
             val stepMs = 100L // saniyede 10 kare
             var t = 0L
             var lastPercent = -1
             while (t <= durationMs) {
                 coroutineContext.ensureActive()
-                val frame = grab(retriever, t, durationMs, frameCount)
+                val frame = grab(retriever, t)
                 if (frame == null) {
                     t += stepMs
                     continue
                 }
-                val small = scaleDown(frame, 960)
+                val small = scaleDown(frame, MAX_SIDE)
                 val boxes = detector.detect(small, t)
                 val tracks = counter.update(boxes)
                 val percent = ((t * 100) / durationMs).toInt()
@@ -70,7 +70,9 @@ object VideoCounter {
             }
             onProgress(Progress(100, counter.count, null, emptyList()))
             Result(counter.count, counter.seen, durationMs)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            CrashLog.record(context, "Videodan sayım hatası", e)
             null
         } finally {
             try {
@@ -81,17 +83,22 @@ object VideoCounter {
         }
     }
 
-    private fun grab(r: MediaMetadataRetriever, timeMs: Long, durationMs: Long, frameCount: Int?): Bitmap? =
+    /**
+     * Kareyi doğrudan küçültülmüş olarak alır. 4K videoda tam boy kare ~33 MB tutar ve
+     * art arda alınınca belleği bitirir; küçük alınca hem hızlı hem güvenli.
+     */
+    private fun grab(r: MediaMetadataRetriever, timeMs: Long): Bitmap? =
         try {
-            if (Build.VERSION.SDK_INT >= 28 && frameCount != null && frameCount > 0) {
-                val index = ((timeMs.toDouble() / durationMs) * (frameCount - 1)).toInt().coerceIn(0, frameCount - 1)
-                r.getFrameAtIndex(index)
+            if (Build.VERSION.SDK_INT >= 27) {
+                r.getScaledFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST, MAX_SIDE, MAX_SIDE)
             } else {
                 r.getFrameAtTime(timeMs * 1000, MediaMetadataRetriever.OPTION_CLOSEST)
             }
         } catch (e: Exception) {
             null
         }
+
+    private const val MAX_SIDE = 960
 
     private fun scaleDown(src: Bitmap, maxSide: Int): Bitmap {
         val longest = max(src.width, src.height)

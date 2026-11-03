@@ -118,6 +118,7 @@ private fun LiveCountContent(expected: Int, onBack: () -> Unit) {
         var provider: ProcessCameraProvider? = null
         var lastFrame = 0L
         var lastTimestamp = 0L
+        var reported = false
 
         providerFuture.addListener({
             val p = providerFuture.get()
@@ -152,8 +153,12 @@ private fun LiveCountContent(expected: Int, onBack: () -> Unit) {
                             aspect = a
                             fps = if (fps == 0f) f else fps * 0.8f + f * 0.2f
                         }
-                    } catch (e: Exception) {
-                        // tek kare hatası: sonraki kareyle devam
+                    } catch (e: Throwable) {
+                        // tek kare hatası: kaydet, sonraki kareyle devam
+                        if (!reported) {
+                            reported = true
+                            com.surudefteri.app.CrashLog.record(context, "Canlı sayım kare hatası", e)
+                        }
                     } finally {
                         proxy.close()
                     }
@@ -162,7 +167,8 @@ private fun LiveCountContent(expected: Int, onBack: () -> Unit) {
             try {
                 p.unbindAll()
                 p.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, analysis)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
+                com.surudefteri.app.CrashLog.record(context, "Kamera açılamadı", e)
                 error = "Kamera açılamadı."
             }
         }, ContextCompat.getMainExecutor(context))
